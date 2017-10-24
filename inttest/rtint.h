@@ -11,4 +11,6 @@ extern "C" {
 	cv::VideoCapture capture;
 	COLOR_FINDER_API int returnint();
 	COLOR_FINDER_API int * cap();
+	COLOR_FINDER_API int stopcap();
+
 }

@@ -21,15 +21,28 @@ extern "C" {
 		Mat cameraFrame;
 		capture.read(cameraFrame);
 
-		Mat imageThresholded;
-		inRange(cameraFrame, Scalar(0,0, 150), Scalar(94, 36, 255), imageThresholded);
-		uchar * data = imageThresholded.data;
+		Mat bgr[3];
+		split(cameraFrame, bgr);
+		bgr[2] = bgr[2] - ((bgr[0] + bgr[1]) * 0.63);
 
 
-		imshow("cam", imageThresholded);
+
+
+		//Mat imageThresholded;
+		//inRange(cameraFrame, Scalar(0,0, 150), Scalar(94, 36, 255), imageThresholded);
+
+
+
+		imshow("cam", bgr[2]);
 
 		
 		return 0;
+	}
+
+	 int stopcap()
+	{
+		 capture.~VideoCapture();
+		 return 0;
 	}
 
 
