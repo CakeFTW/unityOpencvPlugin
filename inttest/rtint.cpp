@@ -21,6 +21,8 @@ extern "C" {
 		Mat cameraFrame;
 		capture.read(cameraFrame);
 
+		medianBlur(cameraFrame, cameraFrame, 5);
+
 		Mat bgr[3];
 		split(cameraFrame, bgr);
 		bgr[2] = bgr[2] - ((bgr[0]*0.55) + (bgr[1])*0.55);
@@ -31,7 +33,7 @@ extern "C" {
 		uchar highestVal = 0;
 		uchar lowestVal = 255;
 		uchar val;
-		
+		imshow("pre", bgr[2]);
 		for (int x = 0; x < bgr[2].cols; x++) {
 			for (int y = 0; y < bgr[2].rows; y++) {
 				
@@ -47,13 +49,13 @@ extern "C" {
 		
 		for (int x = 0; x <  bgr[2].cols; x++) {
 			for (int y = 0; y <  bgr[2].rows; y++) {
-				val = (bgr[2].at<uchar>(Point(x, y)) - lowestVal) * (((float)255) / highestVal);
+				val = (bgr[2].at<uchar>(Point(x, y)) - lowestVal) * (((float)255 )/ highestVal);
 				bgr[2].at<uchar>(Point(x, y)) = val;
 			}
 
 		}
 		
-		imshow("pre", bgr[2]);
+		imshow("histoed", bgr[2]);
 		medianBlur(bgr[2], bgr[2], 5);
 		threshold(bgr[2], bgr[2], 175, 255, THRESH_BINARY);
 		imshow("the", bgr[2]);
@@ -63,9 +65,32 @@ extern "C" {
 
 		
 		imshow("blr", bgr[2]);
-
 		
+		SimpleBlobDetector::Params params;
 
+		params.filterByColor = 255;
+
+		// Storage for blobs
+		vector<KeyPoint> keypoints;
+
+
+
+		// Set up detector with params
+		Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
+
+		// Detect blobs
+		detector->detect(bgr[2], keypoints);
+
+
+		// Draw detected blobs as red circles.
+		// DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures
+		// the size of the circle corresponds to the size of blob
+
+		Mat im_with_keypoints;
+		drawKeypoints(bgr[2], keypoints, im_with_keypoints, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+		// Show blobs
+		imshow("keypoints", im_with_keypoints);
 		
 		return 0;
 	}
