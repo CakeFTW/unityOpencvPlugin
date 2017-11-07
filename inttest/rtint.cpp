@@ -1,8 +1,8 @@
 #include "rtint.h"
 
 extern "C" {
-	
 
+	bool showAllWindows = true;
 
 	int returnint() {
 	
@@ -10,7 +10,6 @@ extern "C" {
 		return hello;
 		
 	}
-
 
 	int * cap() {
 		
@@ -23,13 +22,12 @@ extern "C" {
 		split(cameraFrame, bgr);
 		bgr[2] = bgr[2] - ((bgr[0]*0.55) + (bgr[1])*0.55);
 
-	
-		
-		
 		uchar highestVal = 0;
 		uchar lowestVal = 255;
 		uchar val;
-		imshow("pre", bgr[2]);
+		if(showAllWindows)
+			imshow("pre", bgr[2]);
+
 		for (int x = 0; x < bgr[2].cols; x++) {
 			for (int y = 0; y < bgr[2].rows; y++) {
 				
@@ -51,16 +49,20 @@ extern "C" {
 
 		}
 		
-		imshow("histoed", bgr[2]);
+		if (showAllWindows)
+			imshow("histoed", bgr[2]);
+
 		medianBlur(bgr[2], bgr[2], 5);
 		threshold(bgr[2], bgr[2], 175, 255, THRESH_BINARY);
-		imshow("the", bgr[2]);
+		if (showAllWindows)
+			imshow("the", bgr[2]);
+
 		medianBlur(bgr[2], bgr[2], 5);
 		medianBlur(bgr[2], bgr[2], 5);
 
 
-		
-		imshow("blr", bgr[2]);
+		if (showAllWindows)
+			imshow("blr", bgr[2]);
 		
 		SimpleBlobDetector::Params params;
 
@@ -68,8 +70,6 @@ extern "C" {
 
 		// Storage for blobs
 		vector<KeyPoint> keypoints;
-
-
 
 		// Set up detector with params
 		Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
