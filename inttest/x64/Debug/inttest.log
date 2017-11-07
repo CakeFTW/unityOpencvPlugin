@@ -1,0 +1,9 @@
+﻿  rtint.cpp
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(48): warning C4244: '=': conversion from 'float' to 'uchar', possible loss of data
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(67): warning C4305: '=': truncation from 'int' to 'bool'
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2065: 'vector': undeclared identifier
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2275: 'cv::KeyPoint': illegal use of this type as an expression
+  c:\opencv\build\include\opencv2\core\types.hpp(646): note: see declaration of 'cv::KeyPoint'
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2065: 'keypoints': undeclared identifier
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(78): error C2065: 'keypoints': undeclared identifier
+c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(86): error C2065: 'keypoints': undeclared identifier

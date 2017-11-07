@@ -1,9 +1,5 @@
 #include "rtint.h"
 
-#include <iostream>
-
-using namespace std;
-
 extern "C" {
 	
 
