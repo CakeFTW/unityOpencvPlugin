@@ -2,7 +2,12 @@
 
 extern "C" {
 
-	bool showAllWindows = true;
+	vector<ObjectData> objectData;
+
+	// Storage for blobs
+	vector<KeyPoint> keypoints;
+
+	bool showAllWindows = false;
 
 	int returnint() {
 	
@@ -11,7 +16,7 @@ extern "C" {
 		
 	}
 
-	int * cap() {
+	void cap(ObjectData* outMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount) {
 		
 		Mat cameraFrame;
 		capture.read(cameraFrame);
@@ -54,22 +59,13 @@ extern "C" {
 
 		medianBlur(bgr[2], bgr[2], 5);
 		threshold(bgr[2], bgr[2], 175, 255, THRESH_BINARY);
+		
 		if (showAllWindows)
-			imshow("the", bgr[2]);
-
-		medianBlur(bgr[2], bgr[2], 5);
-		medianBlur(bgr[2], bgr[2], 5);
-
-
-		if (showAllWindows)
-			imshow("blr", bgr[2]);
+			imshow("the_blr", bgr[2]);
 		
 		SimpleBlobDetector::Params params;
 
 		params.filterByColor = 255;
-
-		// Storage for blobs
-		vector<KeyPoint> keypoints;
 
 		// Set up detector with params
 		Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
@@ -77,18 +73,23 @@ extern "C" {
 		// Detect blobs
 		detector->detect(bgr[2], keypoints);
 
+		// Collects the data into Objects readable by the Unity Script
+		for (std::vector<int>::size_type i = 0; i != keypoints.size(); i++) {
+			outMarkers[i] = ObjectData(keypoints[i].pt.x, keypoints[i].pt.y, 1, 1);
+			outDetectedMarkersCount++;
+			if (outDetectedMarkersCount == maxOutMarkersCount)
+				break;
+		}
 
 		// Draw detected blobs as red circles.
 		// DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures
 		// the size of the circle corresponds to the size of blob
-
 		Mat im_with_keypoints;
 		drawKeypoints(bgr[2], keypoints, im_with_keypoints, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
 		// Show blobs
 		imshow("keypoints", im_with_keypoints);
 		
-		return 0;
 	}
 
 	 int stopcap()
@@ -96,6 +97,4 @@ extern "C" {
 		 capture.~VideoCapture();
 		 return 0;
 	}
-
-
 }

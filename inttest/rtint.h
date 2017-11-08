@@ -9,17 +9,20 @@
 #include "opencv2/features2d/features2d.hpp"
 #include "opencv2/features2d.hpp"
 
-
-
 using namespace cv;
 using namespace std;
+
+struct ObjectData
+{
+	ObjectData(int x, int y, int type, int color) : X(x), Y(y), Type(type), Color(color) {}
+	int X, Y, Type, Color;
+};
 
 extern "C" {
 	int hello = 5;
 	int * loc = new int[2];
 	cv::VideoCapture capture;
 	COLOR_FINDER_API int returnint();
-	COLOR_FINDER_API int * cap();
 	COLOR_FINDER_API int stopcap();
-
+	COLOR_FINDER_API void cap(ObjectData* ourMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount);
 }
