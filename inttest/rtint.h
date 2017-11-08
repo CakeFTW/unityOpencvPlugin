@@ -19,10 +19,9 @@ struct ObjectData
 };
 
 extern "C" {
-	int hello = 5;
 	int * loc = new int[2];
 	cv::VideoCapture capture;
-	COLOR_FINDER_API int returnint();
+	COLOR_FINDER_API int init(int& outCameraWidth, int& outCameraHeight);
 	COLOR_FINDER_API int stopcap();
 	COLOR_FINDER_API void cap(ObjectData* ourMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount);
 }

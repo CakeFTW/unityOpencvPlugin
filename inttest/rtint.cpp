@@ -9,10 +9,16 @@ extern "C" {
 
 	bool showAllWindows = false;
 
-	int returnint() {
+	int init(int& outCameraWidth, int& outCameraHeight) {
 	
 		capture.open(0);
-		return hello;
+		if (!capture.isOpened())
+			return -2;
+
+		outCameraWidth = capture.get(CAP_PROP_FRAME_WIDTH);
+		outCameraHeight = capture.get(CAP_PROP_FRAME_HEIGHT);
+
+		return 0;
 		
 	}
 
@@ -74,7 +80,7 @@ extern "C" {
 		detector->detect(bgr[2], keypoints);
 
 		// Collects the data into Objects readable by the Unity Script
-		for (std::vector<int>::size_type i = 0; i != keypoints.size(); i++) {
+		for (std::vector<KeyPoint>::size_type i = 0; i != keypoints.size(); i++) {
 			outMarkers[i] = ObjectData(keypoints[i].pt.x, keypoints[i].pt.y, 1, 1);
 			outDetectedMarkersCount++;
 			if (outDetectedMarkersCount == maxOutMarkersCount)
