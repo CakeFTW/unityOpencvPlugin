@@ -12,8 +12,7 @@
 using namespace cv;
 using namespace std;
 
-struct ObjectData
-{
+struct ObjectData {
 	ObjectData(int x, int y, int type, int color) : X(x), Y(y), Type(type), Color(color) {}
 	int X, Y, Type, Color;
 };
