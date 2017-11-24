@@ -4,6 +4,9 @@ extern "C" {
 
 	vector<ObjectData> objectData;
 
+	//Material to hold camera frame
+	Mat cameraFrame;
+
 	// Storage for blobs
 	vector<KeyPoint> keypoints[6];
 
@@ -18,7 +21,7 @@ extern "C" {
 	Rect bounding_rect;
 	vector<vector<Point>> biggestContour;
 	vector<Vec4i> permHiearchy;
-	void findBorder(Mat src);
+	void findBorder();
 
 	int init(int& outCameraWidth, int& outCameraHeight) {
 	
@@ -35,10 +38,7 @@ extern "C" {
 
 	void cap(ObjectData* outMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount) {
 		
-		Mat cameraFrame;
 		capture.read(cameraFrame);
-
-		findBorder(cameraFrame);
 
 		medianBlur(cameraFrame, cameraFrame, 5);
 
@@ -157,57 +157,58 @@ extern "C" {
 	}
 
 
-	 void findBorder(Mat src) {
+	void findBorder() {
 		 Mat tempImg, canny_output;
 		 
-
 		 //Making a clone of the camera feed image
-		 tempImg = src.clone();
-		 vector<vector<Point>> contours;
+		 if (!cameraFrame.empty()) {
+			 tempImg = cameraFrame.clone();
+			 vector<vector<Point>> contours;
 
-		 vector<Vec4i> hiearchy;
-		 //Converting to HSV
-		 cvtColor(tempImg, tempImg, CV_BGR2HSV);
+			 vector<Vec4i> hiearchy;
+			 //Converting to HSV
+			 cvtColor(tempImg, tempImg, CV_BGR2HSV);
 
-		 //Sensitivity of threshold, higher number = bigger area to take in
-		 int sensitivity = 20;
-		 //Thresholding
-		 inRange(tempImg, Scalar(73 - sensitivity, 18, 18), Scalar(73 + sensitivity, 255, 255), canny_output);
-		 //Median blur to remove some noise
-		 medianBlur(canny_output, canny_output, 7);
+			 //Sensitivity of threshold, higher number = bigger area to take in
+			 int sensitivity = 20;
+			 //Thresholding
+			 inRange(tempImg, Scalar(73 - sensitivity, 18, 18), Scalar(73 + sensitivity, 255, 255), canny_output);
+			 //Median blur to remove some noise
+			 medianBlur(canny_output, canny_output, 7);
 
-		 //Find the contours, and save them in contours vector vector
-		 findContours(canny_output, contours, hiearchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+			 //Find the contours, and save them in contours vector vector
+			 findContours(canny_output, contours, hiearchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
-		 //Empty material to store the drawing of the contour
-		 Mat drawing = Mat::zeros(canny_output.size(), CV_8UC3);
-		 // iterate through each contour.
-		 for (int i = 0; i < contours.size(); i++) {
-			 //  Find the area of contour
-			 double contour_area = contourArea(contours[i], false);
-			 if (contour_area > largest_area) {
-				 //Save the new biggest contour
-				 largest_area = contour_area;
-				 //Emptying the biggest contour container, as a newer, bigger one has been found
-				 biggestContour.empty();
-				 biggestContour.insert(biggestContour.begin(), contours[i]);
+			 //Empty material to store the drawing of the contour
+			 Mat drawing = Mat::zeros(canny_output.size(), CV_8UC3);
+			 // iterate through each contour.
+			 for (int i = 0; i < contours.size(); i++) {
+				 //  Find the area of contour
+				 double contour_area = contourArea(contours[i], false);
+				 if (contour_area > largest_area) {
+					 //Save the new biggest contour
+					 largest_area = contour_area;
+					 //Emptying the biggest contour container, as a newer, bigger one has been found
+					 biggestContour.empty();
+					 biggestContour.insert(biggestContour.begin(), contours[i]);
 
-				 // Store the index of largest contour
-				 largest_contour_index = 0;
-				 // Find the bounding rectangle for biggest contour
-				 bounding_rect = boundingRect(biggestContour[0]);
+					 // Store the index of largest contour
+					 largest_contour_index = 0;
+					 // Find the bounding rectangle for biggest contour
+					 bounding_rect = boundingRect(biggestContour[0]);
+				 }
 			 }
+			 //Green colour
+			 Scalar color = Scalar(0, 255, 0);
+			 if (largest_area > 1000) {
+				 //Draw the found contours
+				 drawContours(drawing, biggestContour, 0, color, CV_FILLED, 8, hiearchy, 0, Point());
+				 //Draw the bounding box the found "object"
+				 rectangle(drawing, bounding_rect, Scalar(0, 255, 0), 2, 8, 0);
+			 }
+			 //Show the resulting biggest contour "object"
+			 namedWindow("Contours", CV_WINDOW_AUTOSIZE);
+			 imshow("Contours", drawing);
 		 }
-		 //Green colour
-		 Scalar color = Scalar(0, 255, 0);
-		 if (largest_area > 1000) {
-			 //Draw the found contours
-			 drawContours(drawing, biggestContour, 0, color, CV_FILLED, 8, hiearchy, 0, Point());
-			 //Draw the bounding box the found "object"
-			 rectangle(drawing, bounding_rect, Scalar(0, 255, 0), 2, 8, 0);
-		 }
-		 //Show the resulting biggest contour "object"
-		 namedWindow("Contours", CV_WINDOW_AUTOSIZE);
-		 imshow("Contours", drawing);
 	 }
 }

@@ -23,4 +23,5 @@ extern "C" {
 	COLOR_FINDER_API int init(int& outCameraWidth, int& outCameraHeight);
 	COLOR_FINDER_API int stopcap();
 	COLOR_FINDER_API void cap(ObjectData* ourMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount);
+	COLOR_FINDER_API void findBorder();
 }
