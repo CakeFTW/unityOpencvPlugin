@@ -323,8 +323,6 @@ extern "C" {
 
 		capture.read(cameraFrame);
 
-		
-
 		lookUpBgr2rg(cameraFrame, rgbNormalized);
 
 		imshow("rg norm", rgbNormalized);
@@ -343,7 +341,7 @@ extern "C" {
 		float rotation = 0;
 		for (auto &blob : blobs) {
 			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
-			outMarkers[outDetectedMarkersCount] = ObjectData(blob.center.x, blob.center.y, blob.nr,rotation);
+			outMarkers[outDetectedMarkersCount] = ObjectData(blob.center.x, blob.center.y, blob.nr, rotation*100);
 			outDetectedMarkersCount++;
 			if (outDetectedMarkersCount == maxOutMarkersCount)
 				break;
