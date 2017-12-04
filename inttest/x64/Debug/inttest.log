@@ -1,31 +1,8 @@
-﻿  rtint.cpp
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(14): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(146): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(170): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(174): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(204): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(205): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(211): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(212): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(216): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(217): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(219): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(220): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(222): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(223): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(262): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(270): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(274): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(255): warning C4101: 'colPtr': unreferenced local variable
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(308): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(309): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(345): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\dgkar\documents\unityopencvplugin\inttest\rtint.cpp(346): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-     Creating library C:\Users\dgkar\Documents\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.lib and object C:\Users\dgkar\Documents\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.exp
+﻿     Creating library C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.lib and object C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.exp
 rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::copyMakeBorder(class cv::debug_build_guard::_InputArray const &,class cv::debug_build_guard::_OutputArray const &,int,int,int,int,int,class cv::Scalar_<double> const &)" (?copyMakeBorder@cv@@YAXAEBV_InputArray@debug_build_guard@1@AEBV_OutputArray@31@HHHHHAEBV?$Scalar_@N@1@@Z) referenced in function init
 rtint.obj : error LNK2019: unresolved external symbol "public: virtual bool __cdecl cv::VideoCapture::read(class cv::debug_build_guard::_OutputArray const &)" (?read@VideoCapture@cv@@UEAA_NAEBV_OutputArray@debug_build_guard@2@@Z) referenced in function cap
 rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::imshow(class cv::String const &,class cv::debug_build_guard::_InputArray const &)" (?imshow@cv@@YAXAEBVString@1@AEBV_InputArray@debug_build_guard@1@@Z) referenced in function cap
 rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::line(class cv::debug_build_guard::_InputOutputArray const &,class cv::Point_<int>,class cv::Point_<int>,class cv::Scalar_<double> const &,int,int,int)" (?line@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@V?$Point_@H@1@1AEBV?$Scalar_@N@1@HHH@Z) referenced in function blobAnalysis
 rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::circle(class cv::debug_build_guard::_InputOutputArray const &,class cv::Point_<int>,int,class cv::Scalar_<double> const &,int,int,int)" (?circle@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@V?$Point_@H@1@HAEBV?$Scalar_@N@1@HHH@Z) referenced in function blobAnalysis
 rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::putText(class cv::debug_build_guard::_InputOutputArray const &,class cv::String const &,class cv::Point_<int>,int,double,class cv::Scalar_<double>,int,int,bool)" (?putText@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@AEBVString@1@V?$Point_@H@1@HNV?$Scalar_@N@1@HH_N@Z) referenced in function blobAnalysis
-C:\Users\dgkar\Documents\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.dll : fatal error LNK1120: 6 unresolved externals
+C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.dll : fatal error LNK1120: 6 unresolved externals

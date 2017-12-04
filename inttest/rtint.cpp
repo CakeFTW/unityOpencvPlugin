@@ -14,73 +14,54 @@ extern "C" {
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-	const int rgConvThreshold = 150;
+	const int rgConvThreshold = 50;
 
 
-	void lookUpBgr2rg(Mat &in, Mat &out) {
+	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
 		//convert to normalized rgb space
-
-		//start by creating lookup table
-		int divLUT[768][256]; //division lookuptavle;
-		for (int i = rgConvThreshold; i < 768; i++) {
-			for (int j = 0; j < 256; j++) {
-				divLUT[i][j] = (j * 255) / i;
-			}
-		}
-		//then convert using LUT
 		int nRows = in.rows;
 		int nCols = in.cols * 3;
 		int sum = 0;
 		uchar * p;
 		uchar * cp;
 
-		for (int i = 0; i < nRows; i++) {
+		uchar red;
+		uchar green;
+		uchar blue;
+		int * lutptr;
+
+		for (int i = 0; i < nRows; i += GRIDSIZE) {
 			p = in.ptr<uchar>(i);
 			cp = out.ptr<uchar>(i);
-			for (int j = 0; j < nCols; j += 3) {
-				sum = p[j] + p[j + 1] + p[j + 2];
-				if (sum < rgConvThreshold) {
-					cp[j] = 0;
-					cp[j + 1] = 0;
-					cp[j + 2] = 0;
-					continue;
-				}
-				cp[j] = divLUT[sum][p[j]];
-				cp[j + 1] = divLUT[sum][p[j + 1]];
-				cp[j + 2] = divLUT[sum][p[j + 2]];
+
+			for (int j = 0; j < nCols; j += 3 * GRIDSIZE) {
+				blue = p[j];
+				green = p[j + 1];
+				red = p[j + 2];
+				sum = blue + green + red;
+				lutptr = divLUT[sum];
+				cp[j] = *(lutptr + blue);
+				cp[j + 1] = *(lutptr + green);
+				cp[j + 2] = *(lutptr + red);
 			}
 		}
 	}
 
-	void thresholdSpeedy(Mat &in, Mat &out) {
 
-		uchar * p;
+	void thresholdSpeedy(Mat &in, Mat &out, int (&lookup)[256][256]) {
+
 		uchar * cp;
-		int * ip;
 		int nRows = in.rows;
 		int nCols = in.cols;
-
-		int lookup[255][255];
-		int minPossibleValue = 0;
-
-
-		for (int i = minPossibleValue; i < 255; i++) {
-			ip = lookup[i];
-			for (int j = minPossibleValue; j < 255; j++) {
-				if (((i - g)*(i - g) + (j - r)*(j - r)) < 3000) {
-					*(ip + j) = 255;
-				}
-				else {
-					*(ip + j) = 0;
-				}
-			}
-		}
-		int color = 0;
-		for (int i = 0; i < nRows; i++) {
+		uchar * p = in.ptr<uchar>(0);
+		int color = -3;
+		int border = GRIDSIZE + 1;
+		for (int i = border; i < nRows-border; i += GRIDSIZE) {
 			p = in.ptr<uchar>(i);
 			cp = out.ptr<uchar>(i);
-			for (int j = 0; j < nCols; j++) {
-				color = j * 3;
+			color = -3;
+			for (int j = border; j < nCols -border; j += GRIDSIZE) {
+				color += 3;
 				cp[j] = lookup[p[color + 1]][p[color + 2]];
 			}
 		}
@@ -91,8 +72,6 @@ extern "C" {
 		from.x = x;
 		from.y = y;
 		store.list.push_back(from);
-
-
 		if (*(pixel + GRIDSIZE) == 255) {
 			dropFire(pixel + GRIDSIZE, store, width, y, x + GRIDSIZE, from);
 		}
@@ -109,7 +88,6 @@ extern "C" {
 		}
 	}
 
-
 	void grassFireBlobDetection(Mat &biImg, vector<glyphObj> &blobs) {
 		int nRows = biImg.rows;
 		int nCols = biImg.cols;
@@ -121,7 +99,8 @@ extern "C" {
 		int col = 245;
 		for (int i = GRIDSIZE + 1; i < nRows - GRIDSIZE - 1; i += GRIDSIZE) {
 			p = biImg.ptr<uchar>(i);
-			for (int j = GRIDSIZE; j < nCols - GRIDSIZE; j += GRIDSIZE) {
+
+			for (int j = GRIDSIZE + 1; j < nCols - GRIDSIZE - 1; j += GRIDSIZE) {
 				if (p[j] == 255) {
 					blobs.push_back(currentBlob);
 					blobs.back().nr = col;
@@ -135,7 +114,6 @@ extern "C" {
 			}
 		}
 	}
-
 
 	void blobAnalysis(vector<glyphObj> &blobs, Mat &drawImg) {
 
@@ -254,7 +232,6 @@ extern "C" {
 			searchPoints.push_back(point);
 
 			int bitCounter = 0;
-			uchar * colPtr;
 			int iterations = 0;
 			for (auto &sp : searchPoints) {
 
@@ -270,13 +247,16 @@ extern "C" {
 				iterations++;
 			}
 			circle(drawImg, Point(centerX - GRIDSIZE, centerY - GRIDSIZE), sqrt(searchDist), Scalar(255, 0, 255), 2);
-
-
-			i.nr = bitCounter;
-			putText(drawImg, to_string(bitCounter), Point(centerX, centerY - sqrt(radiusDist) - 5), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0));
+			if (bitCounter > 0) {
+				i.returnable = true;
+				i.nr = bitCounter;
+				putText(drawImg, to_string(bitCounter), Point(centerX, centerY - sqrt(radiusDist) - 5), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0));
+			}
+			else {
+				i.returnable = false;
+			}
 
 		}
-
 	}
 
 	vector<ObjectData> objectData;
@@ -314,7 +294,30 @@ extern "C" {
 		rgbNormalized = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC3);
 		Threshold = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC1);
 		copyMakeBorder(Threshold, Threshold, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, BORDER_CONSTANT, 0);
+		
 
+		//initialize the lookup tabels
+		for (int i = 0; i < 766; i++) {
+			for (int j = 0; j < 256; j++) {
+				if (i < rgConvThreshold) {
+					divLut[i][j] = 0;
+				}
+				else {
+					divLut[i][j] = (j * 255) / i;
+				}
+			}
+		}
+
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {
+				if (((i - g)*(i - g) + (j - r)*(j - r)) < 2500) {
+					theLut[i][j] = 255;
+				}
+				else {
+					theLut[i][j] = 0;
+				}
+			}
+		}
 
 		return 0;
 		
@@ -325,15 +328,16 @@ extern "C" {
 
 		capture.read(cameraFrame);
 
-		lookUpBgr2rg(cameraFrame, rgbNormalized);
+		preLookUpBgr2rg(cameraFrame, rgbNormalized, divLut);
 		if(debugMode)
 			imshow("rg norm", rgbNormalized);
 
-		thresholdSpeedy(rgbNormalized, Threshold);
+		thresholdSpeedy(rgbNormalized, Threshold, theLut);
 
 		// Storage for blobs
 		vector<glyphObj> blobs;
 		grassFireBlobDetection(Threshold, blobs);
+
 		if(debugMode)
 			imshow("blobs", Threshold);
 
@@ -341,13 +345,17 @@ extern "C" {
 
 		if(debugMode)
 			imshow("out", cameraFrame);
+
 		float rotation = 0;
 		for (auto &blob : blobs) {
+			if (outDetectedMarkersCount == maxOutMarkersCount)
+				break;
+			if (blob.returnable == false)
+				continue;
 			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
 			outMarkers[outDetectedMarkersCount] = ObjectData(blob.center.x, blob.center.y, blob.nr, rotation*100);
 			outDetectedMarkersCount++;
-			if (outDetectedMarkersCount == maxOutMarkersCount)
-				break;
+			
 		}
 	}
 
