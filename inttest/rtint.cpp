@@ -2,6 +2,8 @@
 
 extern "C" {
 
+	bool debugMode = false;
+
 	// parameters for blob detection
 
 
@@ -324,20 +326,21 @@ extern "C" {
 		capture.read(cameraFrame);
 
 		lookUpBgr2rg(cameraFrame, rgbNormalized);
-
-		imshow("rg norm", rgbNormalized);
+		if(debugMode)
+			imshow("rg norm", rgbNormalized);
 
 		thresholdSpeedy(rgbNormalized, Threshold);
 
 		// Storage for blobs
 		vector<glyphObj> blobs;
 		grassFireBlobDetection(Threshold, blobs);
-
-		imshow("blobs", Threshold);
+		if(debugMode)
+			imshow("blobs", Threshold);
 
 		blobAnalysis(blobs, cameraFrame);
 
-		imshow("out", cameraFrame);
+		if(debugMode)
+			imshow("out", cameraFrame);
 		float rotation = 0;
 		for (auto &blob : blobs) {
 			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
