@@ -34,10 +34,13 @@ struct glyphObj {
 	cVector center;
 	cVector rotation;
 	int nr;
+	bool returnable = false;
 };
 
 extern "C" {
 	int * loc = new int[2];
+	int divLut[766][256];
+	int theLut[256][256];
 	cv::VideoCapture capture;
 	COLOR_FINDER_API int init(int& outCameraWidth, int& outCameraHeight);
 	COLOR_FINDER_API int stopcap();
