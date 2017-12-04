@@ -1,9 +1,26 @@
 ﻿  rtint.cpp
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(48): warning C4244: '=': conversion from 'float' to 'uchar', possible loss of data
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(67): warning C4305: '=': truncation from 'int' to 'bool'
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2065: 'vector': undeclared identifier
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2275: 'cv::KeyPoint': illegal use of this type as an expression
-  c:\opencv\build\include\opencv2\core\types.hpp(646): note: see declaration of 'cv::KeyPoint'
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(70): error C2065: 'keypoints': undeclared identifier
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(78): error C2065: 'keypoints': undeclared identifier
-c:\users\rasmus\source\unityplugin\unityopencvplugin\inttest\rtint.cpp(86): error C2065: 'keypoints': undeclared identifier
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(14): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(146): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(170): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(174): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(204): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(205): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(211): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(212): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(216): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(217): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(219): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(220): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(222): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(223): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(262): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(270): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(274): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(255): warning C4101: 'colPtr': unreferenced local variable
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(310): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\rasmus\source\unityopencvplugin\inttest\rtint.cpp(311): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+     Creating library C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.lib and object C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.exp
+rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::line(class cv::debug_build_guard::_InputOutputArray const &,class cv::Point_<int>,class cv::Point_<int>,class cv::Scalar_<double> const &,int,int,int)" (?line@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@V?$Point_@H@1@1AEBV?$Scalar_@N@1@HHH@Z) referenced in function blobAnalysis
+rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::circle(class cv::debug_build_guard::_InputOutputArray const &,class cv::Point_<int>,int,class cv::Scalar_<double> const &,int,int,int)" (?circle@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@V?$Point_@H@1@HAEBV?$Scalar_@N@1@HHH@Z) referenced in function blobAnalysis
+rtint.obj : error LNK2019: unresolved external symbol "void __cdecl cv::putText(class cv::debug_build_guard::_InputOutputArray const &,class cv::String const &,class cv::Point_<int>,int,double,class cv::Scalar_<double>,int,int,bool)" (?putText@cv@@YAXAEBV_InputOutputArray@debug_build_guard@1@AEBVString@1@V?$Point_@H@1@HNV?$Scalar_@N@1@HH_N@Z) referenced in function blobAnalysis
+C:\Users\Rasmus\source\unityOpencvPlugin\x64\Debug\unityOpencvPlugin.dll : fatal error LNK1120: 3 unresolved externals

@@ -2,15 +2,290 @@
 
 extern "C" {
 
+	// parameters for blob detection
+
+
+	const int GRIDSIZE = 1;
+
+	int r = 180;
+	int g = 40;
+
+	bool timeKeeping = true;
+	const float discrimHW = 0.2;
+	const int rgConvThreshold = 150;
+
+
+	void lookUpBgr2rg(Mat &in, Mat &out) {
+		//convert to normalized rgb space
+
+		//start by creating lookup table
+		int divLUT[768][256]; //division lookuptavle;
+		for (int i = rgConvThreshold; i < 768; i++) {
+			for (int j = 0; j < 256; j++) {
+				divLUT[i][j] = (j * 255) / i;
+			}
+		}
+		//then convert using LUT
+		int nRows = in.rows;
+		int nCols = in.cols * 3;
+		int sum = 0;
+		uchar * p;
+		uchar * cp;
+
+		for (int i = 0; i < nRows; i++) {
+			p = in.ptr<uchar>(i);
+			cp = out.ptr<uchar>(i);
+			for (int j = 0; j < nCols; j += 3) {
+				sum = p[j] + p[j + 1] + p[j + 2];
+				if (sum < rgConvThreshold) {
+					cp[j] = 0;
+					cp[j + 1] = 0;
+					cp[j + 2] = 0;
+					continue;
+				}
+				cp[j] = divLUT[sum][p[j]];
+				cp[j + 1] = divLUT[sum][p[j + 1]];
+				cp[j + 2] = divLUT[sum][p[j + 2]];
+			}
+		}
+	}
+
+	void thresholdSpeedy(Mat &in, Mat &out) {
+
+		uchar * p;
+		uchar * cp;
+		int * ip;
+		int nRows = in.rows;
+		int nCols = in.cols;
+
+		int lookup[255][255];
+		int minPossibleValue = 0;
+
+
+		for (int i = minPossibleValue; i < 255; i++) {
+			ip = lookup[i];
+			for (int j = minPossibleValue; j < 255; j++) {
+				if (((i - g)*(i - g) + (j - r)*(j - r)) < 3000) {
+					*(ip + j) = 255;
+				}
+				else {
+					*(ip + j) = 0;
+				}
+			}
+		}
+		int color = 0;
+		for (int i = 0; i < nRows; i++) {
+			p = in.ptr<uchar>(i);
+			cp = out.ptr<uchar>(i);
+			for (int j = 0; j < nCols; j++) {
+				color = j * 3;
+				cp[j] = lookup[p[color + 1]][p[color + 2]];
+			}
+		}
+	}
+
+	void dropFire(uchar * pixel, glyphObj &store, int &width, int y, int x, cVector &from) {
+		*pixel = store.nr;
+		from.x = x;
+		from.y = y;
+		store.list.push_back(from);
+
+
+		if (*(pixel + GRIDSIZE) == 255) {
+			dropFire(pixel + GRIDSIZE, store, width, y, x + GRIDSIZE, from);
+		}
+		if (*(pixel + width) == 255) {
+			dropFire(pixel + width, store, width, y + GRIDSIZE, x, from);
+		}
+
+		if (*(pixel - GRIDSIZE) == 255) {
+			dropFire(pixel - GRIDSIZE, store, width, y, x - GRIDSIZE, from);
+		}
+
+		if (*(pixel - width) == 255) {
+			dropFire(pixel - width, store, width, y - GRIDSIZE, x, from);
+		}
+	}
+
+
+	void grassFireBlobDetection(Mat &biImg, vector<glyphObj> &blobs) {
+		int nRows = biImg.rows;
+		int nCols = biImg.cols;
+		int rowSize = nCols * GRIDSIZE;
+		uchar * p;
+		uchar * passer;
+		glyphObj currentBlob;
+		cVector assigner;
+		int col = 245;
+		for (int i = GRIDSIZE + 1; i < nRows - GRIDSIZE - 1; i += GRIDSIZE) {
+			p = biImg.ptr<uchar>(i);
+			for (int j = GRIDSIZE; j < nCols - GRIDSIZE; j += GRIDSIZE) {
+				if (p[j] == 255) {
+					blobs.push_back(currentBlob);
+					blobs.back().nr = col;
+					passer = &p[j];
+					dropFire(passer, blobs.back(), rowSize, i, j, assigner);
+					col -= 10;
+					if (col < 20) {
+						col = 245;
+					}
+				}
+			}
+		}
+	}
+
+
+	void blobAnalysis(vector<glyphObj> &blobs, Mat &drawImg) {
+
+		//printing out objects
+		int minSize = 200 / GRIDSIZE;
+		int maxSize = 8000 / GRIDSIZE;
+		for (auto &i : blobs) {
+			//find center
+			int size;
+			size = i.list.size();
+			if (size < minSize || size > maxSize) { continue; }
+			long centerX = 0;
+			long centerY = 0;
+			int largestX = 0;
+			int smallestX = 10000;
+			int largestY = 0;
+			int smallestY = 10000;
+			int radiusDist = 0;
+			int searchDist = 0;
+			for (auto &v : i.list) {
+				if (v.x < smallestX) { smallestX = v.x; }
+				if (v.x > largestX) { largestX = v.x; }
+				if (v.y < smallestY) { smallestY = v.y; }
+				if (v.y > largestY) { largestY = v.y; }
+				centerX += v.x;
+				centerY += v.y;
+			}
+			float heightWidth = ((largestX - smallestX) / (float)(largestY - smallestY));
+
+			//check discriminate basedd on height width relation
+			if (heightWidth > (1 + discrimHW) || heightWidth <(1 - discrimHW)) { continue; }
+			centerX = (smallestX + largestX) / 2;
+			centerY = (smallestY + largestY) / 2;
+			radiusDist = ((float)((float)(largestX - centerX) + (centerX - smallestX) + (largestY - centerY) + (centerY - smallestY))) / 4;
+			i.center.x = centerX;
+			i.center.y = centerY;
+			circle(drawImg, Point(centerX - GRIDSIZE, centerY - GRIDSIZE), 2, Scalar(0, 0, 255), 5);
+			searchDist = (float)radiusDist * 0.7;
+			searchDist = searchDist * searchDist;
+			//find closest pixel
+			int dist = 10000;
+			vector<cVector> points;
+			for (auto &v : i.list) {
+				dist = (v.x - i.center.x) * (v.x - i.center.x) + (v.y - i.center.y) * (v.y - i.center.y);
+				if (dist < searchDist) {
+					points.push_back(v);
+				}
+			}
+			if (points.size() == 0) { continue; }
+			float rotX = 0;
+			float rotY = 0;
+
+			for (auto &p : points) {
+				rotX += p.x - centerX;
+				rotY += p.y - centerY;
+			}
+
+			rotX /= points.size();
+			rotY /= points.size();
+
+			//set vector size to be radius
+			float vecDist = sqrt(rotX * rotX + rotY * rotY);
+			if (vecDist == 0) {
+				continue;
+			}
+			vecDist = radiusDist / vecDist;
+
+			i.rotation.x = rotX * vecDist;
+			i.rotation.y = rotY * vecDist;
+
+			line(drawImg, Point(i.center.x - GRIDSIZE, i.center.y - GRIDSIZE), Point(i.center.x + i.rotation.x - GRIDSIZE, i.center.y + i.rotation.y - GRIDSIZE), Scalar(0, 255, 0), 2);
+
+			//use vectors to find bit pixels.
+
+			i.center.x = centerX + rotX*0.4;
+			i.center.y = centerY + rotY*0.4;
+
+
+			cVector rotCclock;
+			rotCclock.x = -rotY*0.35;
+			rotCclock.y = rotX*0.35;
+			cVector rotClock;
+			rotClock.x = rotY*0.35;
+			rotClock.y = -rotX*0.35;
+			cVector reverse;
+			reverse.x = -rotX*0.9;
+			reverse.y = -rotY*0.9;
+
+
+			const int cirSize = 1;
+
+			vector<cVector> searchPoints;
+			cVector point(i.center.x + rotCclock.x - GRIDSIZE, i.center.y + rotCclock.y - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotClock.x - GRIDSIZE, i.center.y + rotClock.y - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotCclock.x + reverse.x - GRIDSIZE, i.center.y + rotCclock.y + reverse.y - GRIDSIZE);
+
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotClock.x + reverse.x - GRIDSIZE, i.center.y + rotClock.y + reverse.y - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotCclock.x * 3 - GRIDSIZE, i.center.y + rotCclock.y * 3 - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotClock.x * 3 - GRIDSIZE, i.center.y + rotClock.y * 3 - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotCclock.x * 3 + reverse.x - GRIDSIZE, i.center.y + rotCclock.y * 3 + reverse.y - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			point = cVector(i.center.x + rotClock.x * 3 + reverse.x - GRIDSIZE, i.center.y + rotClock.y * 3 + reverse.y - GRIDSIZE);
+			searchPoints.push_back(point);
+
+			int bitCounter = 0;
+			uchar * colPtr;
+			int iterations = 0;
+			for (auto &sp : searchPoints) {
+
+				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
+
+				if (intensity[0]< 125 && intensity[1] < 125 && intensity[2] < 125) {
+					bitCounter += pow(2, iterations);
+					circle(drawImg, Point(sp.x, sp.y), cirSize, Scalar(0, 255, 0), 1);
+				}
+				else {
+					circle(drawImg, Point(sp.x, sp.y), cirSize, Scalar(0, 0, 255), 1);
+				}
+				iterations++;
+			}
+			circle(drawImg, Point(centerX - GRIDSIZE, centerY - GRIDSIZE), sqrt(searchDist), Scalar(255, 0, 255), 2);
+
+
+			i.nr = bitCounter;
+			putText(drawImg, to_string(bitCounter), Point(centerX, centerY - sqrt(radiusDist) - 5), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0));
+
+		}
+
+	}
+
 	vector<ObjectData> objectData;
 
 	//Material to hold camera frame
 	Mat cameraFrame;
+	Mat rgbNormalized;
+	Mat Threshold;
 
-	// Storage for blobs
-	vector<KeyPoint> keypoints[6];
 
-	bool showAllWindows = false;
+	bool showAllWindows = true;
 
 
 	//Assorted variables for border detection
@@ -23,14 +298,21 @@ extern "C" {
 	vector<Vec4i> permHiearchy;
 	void findBorder();
 
+
 	int init(int& outCameraWidth, int& outCameraHeight) {
 	
-		capture.open(1);
+		capture.open(0);
 		if (!capture.isOpened())
 			return -2;
 
 		outCameraWidth = capture.get(CAP_PROP_FRAME_WIDTH);
 		outCameraHeight = capture.get(CAP_PROP_FRAME_HEIGHT);
+
+		capture.read(cameraFrame);
+		rgbNormalized = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC3);
+		Threshold = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC1);
+		copyMakeBorder(Threshold, Threshold, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, BORDER_CONSTANT, 0);
+
 
 		return 0;
 		
@@ -38,116 +320,34 @@ extern "C" {
 
 	void cap(ObjectData* outMarkers, int maxOutMarkersCount, int& outDetectedMarkersCount) {
 		
+
 		capture.read(cameraFrame);
 
-		medianBlur(cameraFrame, cameraFrame, 5);
-
-		Mat bgr[3];
-		Mat colors[6];
-
-
-		split(cameraFrame, bgr);
-		float sf = 0.50; // the spilt factor(how powerful the filtering of the colors are)
-		colors[0] = bgr[0] - ((bgr[1] * sf) + (bgr[2])*sf); //blue
-		colors[1] = bgr[1] - ((bgr[0] * sf) + (bgr[2])*sf); //green
-		colors[2] = bgr[2] - ((bgr[0] * sf) + (bgr[1])*sf); //red
-		colors[3] = ((bgr[0] + bgr[1])/2) - (bgr[2]*2*sf); //cyan
-		colors[4] = ((bgr[0] + bgr[2])/2) - (bgr[1]*2*sf); //magenta
-		colors[5] = ((bgr[2] + bgr[1])/2) - (bgr[0]*2*sf); //yellow
-
-		Mat thresholder = bgr[0] * 0;
-
-
-		SimpleBlobDetector::Params params;
-
-		params.filterByColor = 255;
-
-		// Set up detector with params
-		Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
-
 		
-		for (int i = 0; i < 6; i++) {
-			uchar highestVal = 0;
-			uchar lowestVal = 255;
-			uchar val;
 
+		lookUpBgr2rg(cameraFrame, rgbNormalized);
 
+		imshow("rg norm", rgbNormalized);
 
-			if (showAllWindows)
-				imshow("pre", colors[i]);
+		thresholdSpeedy(rgbNormalized, Threshold);
 
-			for (int x = 0; x < colors[i].cols; x++) {
-				for (int y = 0; y < colors[i].rows; y++) {
+		// Storage for blobs
+		vector<glyphObj> blobs;
+		grassFireBlobDetection(Threshold, blobs);
 
-					val = colors[i].at<uchar>(Point(x, y));
+		imshow("blobs", Threshold);
 
-					if (val < lowestVal) { lowestVal = val; }
-					if (val > highestVal) { highestVal = val; }
+		blobAnalysis(blobs, cameraFrame);
 
-
-				}
-			}
-
-
-			for (int x = 0; x < colors[i].cols; x++) {
-				for (int y = 0; y < colors[i].rows; y++) {
-					val = (colors[i].at<uchar>(Point(x, y)) - lowestVal) * (((float)255) / highestVal);
-					colors[i].at<uchar>(Point(x, y)) = val;
-				}
-
-			}
-
-			if (showAllWindows)
-				imshow("histoed", colors[i]);
-
-			medianBlur(colors[i], colors[i], 5);
-			threshold(colors[i], colors[i], 175, 255, THRESH_BINARY);
-
-			if (showAllWindows)
-				imshow("the_blr", thresholder);
-
-			thresholder += colors[i];
-
-
-
-
-			// Detect blobs
-			detector->detect(colors[i], keypoints[i]);
-			
-			// Collects the data into Objects readable by the Unity Script
-			for (std::vector<KeyPoint>::size_type j = 0; j != keypoints[i].size(); j++) {
-				outMarkers[outDetectedMarkersCount] = ObjectData(keypoints[i][j].pt.x, keypoints[i][j].pt.y, i, 1);
-				outDetectedMarkersCount++;
-				if (outDetectedMarkersCount == maxOutMarkersCount)
-					break;
-			}
-			
+		imshow("out", cameraFrame);
+		float rotation = 0;
+		for (auto &blob : blobs) {
+			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
+			outMarkers[outDetectedMarkersCount] = ObjectData(blob.center.x, blob.center.y, blob.nr,rotation);
+			outDetectedMarkersCount++;
+			if (outDetectedMarkersCount == maxOutMarkersCount)
+				break;
 		}
-
-
-
-		// Draw detected blobs as red circles.
-		// DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures
-		// the size of the circle corresponds to the size of blob
-
-		vector<KeyPoint> totalKeypoints;
-
-		for (int i = 0; i < 6; i++) {
-			totalKeypoints.insert(totalKeypoints.end(), keypoints[i].begin(), keypoints[i].end());
-		}
-
-
-		Mat im_with_keypoints;
-		drawKeypoints(cameraFrame, totalKeypoints, im_with_keypoints, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-
-		// Show blobs
-		/*imshow("cyan", colors[3]);
-		imshow("magenta", colors[4]);
-		imshow("yellow", colors[5]);*/
-		imshow("KEYPOINTS", im_with_keypoints);
-		imshow("KEYPOINTS2", thresholder);
-
-		
 	}
 
 	 int stopcap()
@@ -156,7 +356,7 @@ extern "C" {
 		 return 0;
 	}
 
-
+	 /*
 	void findBorder() {
 		 Mat tempImg, canny_output;
 		 
@@ -211,4 +411,5 @@ extern "C" {
 			 imshow("Contours", drawing);
 		 }
 	 }
+	 */
 }

@@ -1,13 +1,9 @@
 #pragma once
 
 #define COLOR_FINDER_API __declspec(dllexport) 
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/opencv.hpp"
-#include <stdio.h>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-#include "opencv2/features2d.hpp"
+#include <iostream>
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 
 using namespace cv;
 using namespace std;
@@ -15,6 +11,29 @@ using namespace std;
 struct ObjectData {
 	ObjectData(int x, int y, int type, int color) : X(x), Y(y), Type(type), Color(color) {}
 	int X, Y, Type, Color;
+};
+
+struct cVector {
+	int x;
+	int y;
+	cVector(int _x, int _y) {
+		x = _x;
+		y = _y;
+	}
+	cVector() {
+		x = 0;
+		y = 0;
+	}
+};
+
+struct glyphObj {
+	vector<cVector> list;
+	int nrOfPixels;
+	cVector bBoxStart;
+	cVector bBowEnd;
+	cVector center;
+	cVector rotation;
+	int nr;
 };
 
 extern "C" {
