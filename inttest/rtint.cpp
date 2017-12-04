@@ -2,7 +2,7 @@
 
 extern "C" {
 
-	bool debugMode = false;
+	bool debugMode = true;
 
 	// parameters for blob detection
 
