@@ -120,7 +120,7 @@ extern "C" {
 	void blobAnalysis(vector<glyphObj> &blobs, Mat &drawImg) {
 
 		//printing out objects
-		int minSize = 200 / GRIDSIZE;
+		int minSize = 100 / GRIDSIZE;
 		int maxSize = 16000 / GRIDSIZE;
 		for (auto &i : blobs) {
 			//find center
@@ -198,13 +198,14 @@ extern "C" {
 			int startPointY = centerY + rotY*0.25;
 
 
-			
+			//Bigger is more radius
 			float cClockX = -rotY*0.18;
 			float cClockY = rotX*0.18;
 			
 			float clockX = rotY*0.18;
 			float clockY= -rotX*0.18;
 
+			//Downwards sample
 			float reverseX = -rotX*0.55;
 			float reverseY = -rotY*0.55;
 
@@ -300,7 +301,7 @@ extern "C" {
 
 	int init(int& outCameraWidth, int& outCameraHeight) {
 	
-		capture.open(0);
+		capture.open(2);
 		if (!capture.isOpened())
 			return -2;
 
@@ -370,7 +371,7 @@ extern "C" {
 			if (blob.returnable == false)
 				continue;
 			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
-			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x, blob.center.y, blob.nr, rotation*180);
+			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x, blob.center.y, blob.nr, (rotation/3.145)*180);
 			outDetectedMarkersCount++;
 			
 		}
