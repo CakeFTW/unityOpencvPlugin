@@ -7,17 +7,16 @@ extern "C" {
 	// parameters for blob detection
 
 
+
+	const int GRIDSIZE = 1;
+	const int BORDER = GRIDSIZE + 1;
+
 	int r = 180;
 	int g = 40;
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-
-	const int GRIDSIZE = 1;
-	const int BORDER = GRIDSIZE + 1;
-
-
-	const int rgConvThreshold = 50;
+	const int rgConvThreshold = 125;
 
 
 	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
@@ -148,14 +147,14 @@ extern "C" {
 			
 			//check discriminate basedd on height width relation
 			if (heightWidth > (1 + discrimHW) || heightWidth <(1 - discrimHW)) { continue; }
-			centerX = 1 + ((smallestX + largestX-1) / 2) ;
-			centerY = 1 + ((smallestY + largestY-1) / 2);
+			centerX = (smallestX + largestX) / 2;
+			centerY = (smallestY + largestY) / 2;
 
 			radiusDist = (largestX - smallestX + largestY - smallestY) / 4;
 			i.center.x = centerX;
 			i.center.y = centerY;
 			
-			searchDist = (float)radiusDist * 0.7;
+			searchDist = (float)radiusDist*0.70;
 			searchDist = searchDist * searchDist;
 			//find closest pixel
 			int dist = 10000;
@@ -164,74 +163,78 @@ extern "C" {
 				dist = (v.x - i.center.x) * (v.x - i.center.x) + (v.y - i.center.y) * (v.y - i.center.y);
 				if (dist < searchDist) {
 					points.push_back(v);
+					drawImg.at<uchar>(v.y, v.x*3) = 255;
 				}
 			}
 			if (points.size() == 0) { continue; }
 			float rotX = 0;
 			float rotY = 0;
 
+			long holderRotX = 0;
+			long holderRotY = 0;
 			for (auto &p : points) {
-				rotX += p.x - centerX;
-				rotY += p.y - centerY;
+				holderRotX += p.x - centerX;
+				holderRotY += p.y - centerY;
 			}
 
-			rotX /= points.size();
-			rotY /= points.size();
+			rotX = (holderRotX / (float)points.size());
+			rotY = (holderRotY / (float)points.size());
 
 			//set vector size to be radius
 			float vecDist = sqrt(rotX * rotX + rotY * rotY);
-			if (vecDist == 0) {
+			if (vecDist < 3) {
 				continue;
 			}
-			vecDist = radiusDist / vecDist;
+			vecDist = radiusDist/vecDist;
 
-			i.rotation.x = rotX * vecDist;
-			i.rotation.y = rotY * vecDist;
-
+			rotX *= vecDist;
+			rotY *= vecDist;
+			i.rotation.x = rotX ;
+			i.rotation.y = rotY ;
 
 			//use vectors to find bit pixels.
 
-			i.center.x = centerX + rotX*0.4;
-			i.center.y = centerY + rotY*0.4;
+			int startPointX = centerX + rotX*0.25;
+			int startPointY = centerY + rotY*0.25;
 
 
-			cVector rotCclock;
-			rotCclock.x = -rotY*0.35;
-			rotCclock.y = rotX*0.35;
-			cVector rotClock;
-			rotClock.x = rotY*0.35;
-			rotClock.y = -rotX*0.35;
-			cVector reverse;
-			reverse.x = -rotX*0.9;
-			reverse.y = -rotY*0.9;
+			
+			float cClockX = -rotY*0.18;
+			float cClockY = rotX*0.18;
+			
+			float clockX = rotY*0.18;
+			float clockY= -rotX*0.18;
+
+			float reverseX = -rotX*0.55;
+			float reverseY = -rotY*0.55;
 
 
 			const int cirSize = 1;
 
 			vector<cVector> searchPoints;
-			cVector point(i.center.x + rotCclock.x , i.center.y + rotCclock.y);
+
+			cVector point((startPointX + cClockX) , (startPointY + cClockY));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x, i.center.y + rotClock.y);
+			point = cVector((startPointX + clockX), (startPointY + clockY));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x + reverse.x , i.center.y + rotCclock.y + reverse.y );
-
+			point = cVector((startPointX + cClockX + reverseX) , (startPointY + cClockY + reverseY));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x + reverse.x , i.center.y + rotClock.y + reverse.y);
+			point = cVector((startPointX + clockX + reverseX ), (startPointY + clockY + reverseY));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x * 3, i.center.y + rotCclock.y * 3 );
+			point = cVector((startPointX + cClockX * 3), (startPointY + cClockY * 3 ));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x * 3 , i.center.y + rotClock.y * 3 );
+			point = cVector((startPointX + clockX * 3), (startPointY + clockY * 3 ));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x * 3 + reverse.x , i.center.y + rotCclock.y * 3 + reverse.y);
+			point = cVector((startPointX + cClockX * 3 + reverseX), (startPointY + cClockY * 3 + reverseY));
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x * 3 + reverse.x , i.center.y + rotClock.y * 3 + reverse.y);
+			point = cVector((startPointX + clockX * 3 + reverseX) , (startPointY + clockY * 3 + reverseY));
 			searchPoints.push_back(point);
 
 			int bitCounter = 0;
@@ -240,7 +243,7 @@ extern "C" {
 
 				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
 
-				if (intensity[0]< 75 && intensity[1] < 75 && intensity[2] < 75) {
+				if (intensity[0]< 100 && intensity[1] < 100 && intensity[2] < 100) {
 					bitCounter += pow(2, iterations);
 					circle(drawImg, Point(sp.x, sp.y), cirSize, Scalar(0, 255, 0), 1);
 				}
@@ -324,7 +327,7 @@ extern "C" {
 
 		for (int i = 0; i < 256; i++) {
 			for (int j = 0; j < 256; j++) {
-				if (((i - g)*(i - g) + (j - r)*(j - r)) < 2500) {
+				if (((i - g)*(i - g) + (j - r)*(j - r)) < 3600) {
 					theLut[i][j] = 255;
 				}
 				else {
@@ -354,19 +357,20 @@ extern "C" {
 		if(debugMode)
 			imshow("blobs", Threshold);
 
-		blobAnalysis(blobs, rgbNormalized);
+		blobAnalysis(blobs, cameraFrame);
 
 		if(debugMode)
 			imshow("out", cameraFrame);
 
 		float rotation = 0;
+		int screenWidth = capture.get(CAP_PROP_FRAME_WIDTH);
 		for (auto &blob : blobs) {
 			if (outDetectedMarkersCount == maxOutMarkersCount)
 				break;
 			if (blob.returnable == false)
 				continue;
 			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
-			outMarkers[outDetectedMarkersCount] = ObjectData(blob.center.x, blob.center.y, blob.nr, rotation*100);
+			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x, blob.center.y, blob.nr, rotation*180);
 			outDetectedMarkersCount++;
 			
 		}
