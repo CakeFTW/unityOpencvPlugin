@@ -8,6 +8,7 @@ extern "C" {
 
 
 	const int GRIDSIZE = 1;
+	const int BORDER = GRIDSIZE + 1;
 
 	int r = 180;
 	int g = 40;
@@ -55,14 +56,14 @@ extern "C" {
 		int nCols = in.cols;
 		uchar * p = in.ptr<uchar>(0);
 		int color = -3;
-		int border = GRIDSIZE + 1;
-		for (int i = border; i < nRows-border; i += GRIDSIZE) {
+
+		for (int i = 0; i < nRows-0; i += GRIDSIZE) {
 			p = in.ptr<uchar>(i);
-			cp = out.ptr<uchar>(i);
+			cp = out.ptr<uchar>(i+BORDER);
 			color = -3;
-			for (int j = border; j < nCols -border; j += GRIDSIZE) {
+			for (int j = 0; j < nCols; j += GRIDSIZE) {
 				color += 3;
-				cp[j] = lookup[p[color + 1]][p[color + 2]];
+				cp[j+BORDER] = lookup[p[color + 1]][p[color + 2]];
 			}
 		}
 	}
@@ -105,7 +106,7 @@ extern "C" {
 					blobs.push_back(currentBlob);
 					blobs.back().nr = col;
 					passer = &p[j];
-					dropFire(passer, blobs.back(), rowSize, i, j, assigner);
+					dropFire(passer, blobs.back(), rowSize, i-BORDER, j-BORDER, assigner);
 					col -= 10;
 					if (col < 20) {
 						col = 245;
@@ -119,7 +120,7 @@ extern "C" {
 
 		//printing out objects
 		int minSize = 200 / GRIDSIZE;
-		int maxSize = 8000 / GRIDSIZE;
+		int maxSize = 16000 / GRIDSIZE;
 		for (auto &i : blobs) {
 			//find center
 			int size;
@@ -138,19 +139,20 @@ extern "C" {
 				if (v.x > largestX) { largestX = v.x; }
 				if (v.y < smallestY) { smallestY = v.y; }
 				if (v.y > largestY) { largestY = v.y; }
-				centerX += v.x;
-				centerY += v.y;
+	
 			}
 			float heightWidth = ((largestX - smallestX) / (float)(largestY - smallestY));
 
+			
 			//check discriminate basedd on height width relation
 			if (heightWidth > (1 + discrimHW) || heightWidth <(1 - discrimHW)) { continue; }
-			centerX = (smallestX + largestX) / 2;
-			centerY = (smallestY + largestY) / 2;
-			radiusDist = ((float)((float)(largestX - centerX) + (centerX - smallestX) + (largestY - centerY) + (centerY - smallestY))) / 4;
+			centerX = 1 + ((smallestX + largestX-1) / 2) ;
+			centerY = 1 + ((smallestY + largestY-1) / 2);
+
+			radiusDist = (largestX - smallestX + largestY - smallestY) / 4;
 			i.center.x = centerX;
 			i.center.y = centerY;
-			circle(drawImg, Point(centerX - GRIDSIZE, centerY - GRIDSIZE), 2, Scalar(0, 0, 255), 5);
+			
 			searchDist = (float)radiusDist * 0.7;
 			searchDist = searchDist * searchDist;
 			//find closest pixel
@@ -184,7 +186,6 @@ extern "C" {
 			i.rotation.x = rotX * vecDist;
 			i.rotation.y = rotY * vecDist;
 
-			line(drawImg, Point(i.center.x - GRIDSIZE, i.center.y - GRIDSIZE), Point(i.center.x + i.rotation.x - GRIDSIZE, i.center.y + i.rotation.y - GRIDSIZE), Scalar(0, 255, 0), 2);
 
 			//use vectors to find bit pixels.
 
@@ -206,29 +207,29 @@ extern "C" {
 			const int cirSize = 1;
 
 			vector<cVector> searchPoints;
-			cVector point(i.center.x + rotCclock.x - GRIDSIZE, i.center.y + rotCclock.y - GRIDSIZE);
+			cVector point(i.center.x + rotCclock.x , i.center.y + rotCclock.y);
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x - GRIDSIZE, i.center.y + rotClock.y - GRIDSIZE);
+			point = cVector(i.center.x + rotClock.x, i.center.y + rotClock.y);
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x + reverse.x - GRIDSIZE, i.center.y + rotCclock.y + reverse.y - GRIDSIZE);
+			point = cVector(i.center.x + rotCclock.x + reverse.x , i.center.y + rotCclock.y + reverse.y );
 
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x + reverse.x - GRIDSIZE, i.center.y + rotClock.y + reverse.y - GRIDSIZE);
+			point = cVector(i.center.x + rotClock.x + reverse.x , i.center.y + rotClock.y + reverse.y);
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x * 3 - GRIDSIZE, i.center.y + rotCclock.y * 3 - GRIDSIZE);
+			point = cVector(i.center.x + rotCclock.x * 3, i.center.y + rotCclock.y * 3 );
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x * 3 - GRIDSIZE, i.center.y + rotClock.y * 3 - GRIDSIZE);
+			point = cVector(i.center.x + rotClock.x * 3 , i.center.y + rotClock.y * 3 );
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotCclock.x * 3 + reverse.x - GRIDSIZE, i.center.y + rotCclock.y * 3 + reverse.y - GRIDSIZE);
+			point = cVector(i.center.x + rotCclock.x * 3 + reverse.x , i.center.y + rotCclock.y * 3 + reverse.y);
 			searchPoints.push_back(point);
 
-			point = cVector(i.center.x + rotClock.x * 3 + reverse.x - GRIDSIZE, i.center.y + rotClock.y * 3 + reverse.y - GRIDSIZE);
+			point = cVector(i.center.x + rotClock.x * 3 + reverse.x , i.center.y + rotClock.y * 3 + reverse.y);
 			searchPoints.push_back(point);
 
 			int bitCounter = 0;
@@ -237,7 +238,7 @@ extern "C" {
 
 				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
 
-				if (intensity[0]< 125 && intensity[1] < 125 && intensity[2] < 125) {
+				if (intensity[0]< 75 && intensity[1] < 75 && intensity[2] < 75) {
 					bitCounter += pow(2, iterations);
 					circle(drawImg, Point(sp.x, sp.y), cirSize, Scalar(0, 255, 0), 1);
 				}
@@ -246,15 +247,26 @@ extern "C" {
 				}
 				iterations++;
 			}
-			circle(drawImg, Point(centerX - GRIDSIZE, centerY - GRIDSIZE), sqrt(searchDist), Scalar(255, 0, 255), 2);
+
+			line(drawImg, Point(i.center.x, i.center.y), Point(i.center.x + i.rotation.x, i.center.y + i.rotation.y), Scalar(0, 255, 0), 2);
 			if (bitCounter > 0) {
 				i.returnable = true;
 				i.nr = bitCounter;
 				putText(drawImg, to_string(bitCounter), Point(centerX, centerY - sqrt(radiusDist) - 5), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0));
+				circle(drawImg, Point(centerX , centerY), 1, Scalar(0, 0, 255),1);
+				circle(drawImg, Point(centerX, centerY), sqrt(searchDist), Scalar(255, 0, 255), 1);
+				circle(drawImg, Point(centerX, centerY), radiusDist, Scalar(255, 0, 255), 1);
 			}
 			else {
 				i.returnable = false;
 			}
+
+			//DRAW BOUNDING BOX
+
+			line(drawImg, Point(smallestX, smallestY), Point(largestX , smallestY), Scalar(0, 255, 0), 1);
+			line(drawImg, Point(smallestX, smallestY), Point(smallestX, largestY), Scalar(0, 255, 0), 1);
+			line(drawImg, Point(smallestX, largestY), Point(largestX,largestY), Scalar(0, 255, 0), 1);
+			line(drawImg, Point(largestX, smallestY), Point(largestX, largestY), Scalar(0, 255, 0), 1);
 
 		}
 	}
@@ -293,7 +305,7 @@ extern "C" {
 		capture.read(cameraFrame);
 		rgbNormalized = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC3);
 		Threshold = Mat(cameraFrame.rows, cameraFrame.cols, CV_8UC1);
-		copyMakeBorder(Threshold, Threshold, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, GRIDSIZE + 1, BORDER_CONSTANT, 0);
+		copyMakeBorder(Threshold, Threshold, BORDER, BORDER, BORDER, BORDER, BORDER_CONSTANT, 0);
 		
 
 		//initialize the lookup tabels
@@ -329,8 +341,7 @@ extern "C" {
 		capture.read(cameraFrame);
 
 		preLookUpBgr2rg(cameraFrame, rgbNormalized, divLut);
-		if(debugMode)
-			imshow("rg norm", rgbNormalized);
+	
 
 		thresholdSpeedy(rgbNormalized, Threshold, theLut);
 
@@ -341,7 +352,7 @@ extern "C" {
 		if(debugMode)
 			imshow("blobs", Threshold);
 
-		blobAnalysis(blobs, cameraFrame);
+		blobAnalysis(blobs, rgbNormalized);
 
 		if(debugMode)
 			imshow("out", cameraFrame);
@@ -357,6 +368,8 @@ extern "C" {
 			outDetectedMarkersCount++;
 			
 		}
+		if (debugMode)
+			imshow("rg norm", rgbNormalized);
 	}
 
 	 int stopcap()
