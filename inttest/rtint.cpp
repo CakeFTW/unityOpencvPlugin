@@ -16,7 +16,7 @@ extern "C" {
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-	const int rgConvThreshold = 125;
+	const int rgConvThreshold = 75;
 
 
 	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
@@ -199,11 +199,11 @@ extern "C" {
 
 
 			//Bigger is more radius
-			float cClockX = -rotY*0.185;
-			float cClockY = rotX*0.185;
+			float cClockX = -rotY*0.18;
+			float cClockY = rotX*0.18;
 			
-			float clockX = rotY*0.185;
-			float clockY= -rotX*0.185;
+			float clockX = rotY*0.18;
+			float clockY= -rotX*0.18;
 
 			//Downwards sample
 			float reverseX = -rotX*0.55;
@@ -240,7 +240,7 @@ extern "C" {
 
 			int bitCounter = 0;
 			int iterations = 0;
-			int thresh = 75;
+			int thresh = 50;
 			for (auto &sp : searchPoints) {
 
 				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
@@ -372,7 +372,8 @@ extern "C" {
 				break;
 			if (blob.returnable == false)
 				continue;
-			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x,screenHeight - blob.center.y, blob.nr, blob.rotation.x, blob.rotation.y);
+			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
+			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth - blob.center.x, screenHeight - blob.center.y, blob.nr, blob.rotation.x, blob.rotation.y, (180 / 3.1415) * rotation);
 			outDetectedMarkersCount++;
 			
 		}
