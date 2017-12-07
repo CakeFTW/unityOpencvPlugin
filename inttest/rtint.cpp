@@ -199,11 +199,11 @@ extern "C" {
 
 
 			//Bigger is more radius
-			float cClockX = -rotY*0.18;
-			float cClockY = rotX*0.18;
+			float cClockX = -rotY*0.185;
+			float cClockY = rotX*0.185;
 			
-			float clockX = rotY*0.18;
-			float clockY= -rotX*0.18;
+			float clockX = rotY*0.185;
+			float clockY= -rotX*0.185;
 
 			//Downwards sample
 			float reverseX = -rotX*0.55;
@@ -240,11 +240,12 @@ extern "C" {
 
 			int bitCounter = 0;
 			int iterations = 0;
+			int thresh = 75;
 			for (auto &sp : searchPoints) {
 
 				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
-
-				if (intensity[0]< 100 && intensity[1] < 100 && intensity[2] < 100) {
+				
+				if (intensity[0]< thresh && intensity[1] < thresh && intensity[2] < thresh) {
 					bitCounter += pow(2, iterations);
 					circle(drawImg, Point(sp.x, sp.y), cirSize, Scalar(0, 255, 0), 1);
 				}
@@ -301,7 +302,7 @@ extern "C" {
 
 	int init(int& outCameraWidth, int& outCameraHeight) {
 	
-		capture.open(2);
+		capture.open(1);
 		if (!capture.isOpened())
 			return -2;
 
@@ -365,13 +366,13 @@ extern "C" {
 
 		float rotation = 0;
 		int screenWidth = capture.get(CAP_PROP_FRAME_WIDTH);
+		int screenHeight = capture.get(CAP_PROP_FRAME_HEIGHT);
 		for (auto &blob : blobs) {
 			if (outDetectedMarkersCount == maxOutMarkersCount)
 				break;
 			if (blob.returnable == false)
 				continue;
-			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
-			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x, blob.center.y, blob.nr, (rotation/3.145)*180);
+			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x,screenHeight - blob.center.y, blob.nr, blob.rotation.x, blob.rotation.y);
 			outDetectedMarkersCount++;
 			
 		}
