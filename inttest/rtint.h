@@ -9,8 +9,8 @@ using namespace cv;
 using namespace std;
 
 struct ObjectData {
-	ObjectData(int x, int y, int type, int color) : X(x), Y(y), Type(type), Color(color) {}
-	int X, Y, Type, Color;
+	ObjectData(int x, int y, int type, int rotationX, int rotationY) : X(x), Y(y), Type(type), RotationX(rotationX), RotationY(rotationY) {}
+	int X, Y, Type, RotationX, RotationY;
 };
 
 struct cVector {
