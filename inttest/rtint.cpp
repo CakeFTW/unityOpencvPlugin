@@ -16,7 +16,7 @@ extern "C" {
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-	const int rgConvThreshold = 75;
+	const int rgConvThreshold = 100;
 
 
 	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
@@ -199,11 +199,11 @@ extern "C" {
 
 
 			//Bigger is more radius
-			float cClockX = -rotY*0.18;
-			float cClockY = rotX*0.18;
+			float cClockX = -rotY*0.185;
+			float cClockY = rotX*0.185;
 			
-			float clockX = rotY*0.18;
-			float clockY= -rotX*0.18;
+			float clockX = rotY*0.185;
+			float clockY= -rotX*0.185;
 
 			//Downwards sample
 			float reverseX = -rotX*0.55;
@@ -329,7 +329,7 @@ extern "C" {
 
 		for (int i = 0; i < 256; i++) {
 			for (int j = 0; j < 256; j++) {
-				if (((i - g)*(i - g) + (j - r)*(j - r)) < 3600) {
+				if (((i - g)*(i - g) + (j - r)*(j - r)) < 2500) {
 					theLut[i][j] = 255;
 				}
 				else {
@@ -348,10 +348,11 @@ extern "C" {
 		capture.read(cameraFrame);
 
 		preLookUpBgr2rg(cameraFrame, rgbNormalized, divLut);
-	
 
 		thresholdSpeedy(rgbNormalized, Threshold, theLut);
 
+		Mat element = getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(2, 2));
+		morphologyEx(Threshold, Threshold, MORPH_CLOSE, element);
 		// Storage for blobs
 		vector<glyphObj> blobs;
 		grassFireBlobDetection(Threshold, blobs);
