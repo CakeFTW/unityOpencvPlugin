@@ -16,7 +16,7 @@ extern "C" {
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-	const int rgConvThreshold = 125;
+	const int rgConvThreshold = 100;
 
 
 	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
@@ -240,7 +240,7 @@ extern "C" {
 
 			int bitCounter = 0;
 			int iterations = 0;
-			int thresh = 75;
+			int thresh = 50;
 			for (auto &sp : searchPoints) {
 
 				Vec3b intensity = drawImg.at<Vec3b>(sp.y, sp.x);
@@ -329,7 +329,9 @@ extern "C" {
 
 		for (int i = 0; i < 256; i++) {
 			for (int j = 0; j < 256; j++) {
-				if (((i - g)*(i - g) + (j - r)*(j - r)) < 3600) {
+				if (j > 180){
+					theLut[i][j] = 255;
+				}else if(((i - g)*(i - g) + (j - r)*(j - r)) < 2500) {
 					theLut[i][j] = 255;
 				}
 				else {
@@ -348,10 +350,11 @@ extern "C" {
 		capture.read(cameraFrame);
 
 		preLookUpBgr2rg(cameraFrame, rgbNormalized, divLut);
-	
 
 		thresholdSpeedy(rgbNormalized, Threshold, theLut);
 
+		Mat element = getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(2, 2));
+		morphologyEx(Threshold, Threshold, MORPH_CLOSE, element);
 		// Storage for blobs
 		vector<glyphObj> blobs;
 		grassFireBlobDetection(Threshold, blobs);
@@ -372,7 +375,8 @@ extern "C" {
 				break;
 			if (blob.returnable == false)
 				continue;
-			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth  - blob.center.x,screenHeight - blob.center.y, blob.nr, blob.rotation.x, blob.rotation.y);
+			rotation = acos(blob.rotation.x / sqrt((blob.rotation.x * blob.rotation.x) + (blob.rotation.y * blob.rotation.y)));
+			outMarkers[outDetectedMarkersCount] = ObjectData(screenWidth - blob.center.x, screenHeight - blob.center.y, blob.nr, blob.rotation.x, blob.rotation.y, (180 / 3.1415) * rotation);
 			outDetectedMarkersCount++;
 			
 		}
