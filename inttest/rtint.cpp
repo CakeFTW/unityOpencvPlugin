@@ -16,7 +16,7 @@ extern "C" {
 
 	bool timeKeeping = true;
 	const float discrimHW = 0.2;
-	const int rgConvThreshold = 100;
+	const int rgConvThreshold = 50;
 
 
 	void preLookUpBgr2rg(Mat &in, Mat &out, int (&divLUT)[766][256]) {
@@ -329,9 +329,13 @@ extern "C" {
 
 		for (int i = 0; i < 256; i++) {
 			for (int j = 0; j < 256; j++) {
+<<<<<<< 6d980c5d471db2d36976e81d2acac57f97f86a77
 				if (j > 180){
 					theLut[i][j] = 255;
 				}else if(((i - g)*(i - g) + (j - r)*(j - r)) < 2500) {
+=======
+				if (((i - g)*(i - g) + (j - r)*(j - r)) < 4500) {
+>>>>>>> Dunno
 					theLut[i][j] = 255;
 				}
 				else {
